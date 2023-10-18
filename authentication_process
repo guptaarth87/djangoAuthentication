@@ -1,0 +1,123 @@
+To create a fully working signup and login template in Django, you need to set up the necessary views, templates, and URLs. Additionally, you will need to configure the Django authentication system and the database. Below is a step-by-step guide that you can follow to create the desired functionality:
+
+1. **Create a Django project and app**:
+
+```bash
+django-admin startproject myproject
+cd myproject
+python manage.py startapp myapp
+```
+
+2. **Configure the database**:
+
+Set up the database settings in your settings.py file.
+
+3. **Create the necessary views, templates, and URLs**:
+
+In your `myapp` directory, follow the steps below:
+
+3.1. **Create the views**:
+
+In the views.py file, add the following code:
+
+```python
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate, login
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('home')  # replace 'home' with the name of your home page URL pattern
+    else:
+        form = UserCreationForm()
+    return render(request, 'signup.html', {'form': form})
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('home')  # replace 'home' with the name of your home page URL pattern
+    return render(request, 'login.html')
+```
+
+3.2. **Create the templates**:
+
+Create `signup.html` and `login.html` in the templates directory:
+
+`signup.html`:
+
+```html
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Sign Up</button>
+</form>
+```
+
+`login.html`:
+
+```html
+<form method="post">
+  {% csrf_token %}
+  <input type="text" name="username" placeholder="Username"><br>
+  <input type="password" name="password" placeholder="Password"><br>
+  <button type="submit">Login</button>
+</form>
+```
+
+4. **Configure URLs**:
+
+In your `myapp` directory, create a urls.py file and add the following code:
+
+```python
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('signup/', views.signup, name='signup'),
+    path('login/', views.login_view, name='login'),
+]
+```
+
+5. **Configure the main project URLs**:
+
+In the `myproject/urls.py` file, include the URL patterns of the app:
+
+```python
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('myapp.urls')),
+]
+```
+
+6. **Migrate the database**:
+
+Run the following commands to apply the migrations:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+7. **Run the development server**:
+
+Start the development server with the following command:
+
+```bash
+python manage.py runserver
+```
+
+By following these steps, you will have a fully working signup and login template in Django that stores data in the Django database.
